@@ -1,5 +1,6 @@
 import { useParams } from "@solidjs/router";
 import { createResource } from "solid-js";
+import { useCartContext } from "../context/CartContext";
 
 const fetchProducts = async (id) => {
   const res = await fetch("https://fakestoreapi.com/products/" + id);
@@ -11,6 +12,27 @@ function Product() {
   const params = useParams();
 
   const [product] = createResource(params.id, fetchProducts);
+
+  const { items, setItems } = useCartContext();
+
+  const addProduct = () => {
+    //check exist
+    const exists = items.find((p) => p.id === product().id);
+
+    if (exists) {
+      //inc quantity
+      setItems(
+        (p) => p.id === product().id,
+        "quantity",
+        (q) => q + 1
+      );
+    }
+
+    if (!exists) {
+      //ann new product
+      setItems([...items, { ...product(), quantity: 1 }]);
+    }
+  };
 
   return (
     <div class="my-7">
@@ -25,6 +47,9 @@ function Product() {
             <p class="text-xl">
               Price: <span class="font-bold">{product().price} $</span>
             </p>
+            <button class="btn" onClick={addProduct}>
+              Добавить
+            </button>
           </div>
         </div>
       </Show>
